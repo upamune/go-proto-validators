@@ -148,6 +148,10 @@ func (p *plugin) generateRegexVars(file *generator.FileDescriptor, message *gene
 		validator := getFieldValidatorIfAny(field)
 		if validator != nil && validator.Regex != nil {
 			fieldName := p.GetFieldName(message, field)
+			if field.OneofIndex != nil {
+				fieldName += "_" + *field.Name
+			}
+			fieldName = generator.CamelCase(fieldName)
 			p.P(`var `, p.regexName(ccTypeName, fieldName), ` = `, p.regexPkg.Use(), `.MustCompile(`, strconv.Quote(*validator.Regex), `)`)
 		}
 	}
@@ -255,6 +259,8 @@ func (p *plugin) generateProto3Message(file *generator.FileDescriptor, message *
 		}
 		if isOneOf {
 			p.In()
+			fieldName = p.GetFieldName(message, field) + "_" + *field.Name
+			fieldName = generator.CamelCase(fieldName)
 			oneOfName := p.GetFieldName(message, field)
 			oneOfType := p.OneOfTypeName(message, field)
 			//if x, ok := m.GetType().(*OneOfMessage3_OneInt); ok {
